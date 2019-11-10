@@ -1,33 +1,20 @@
 const Alexa = require('ask-sdk-core');
 const provider = require('./provider');
 const entities = new (require('html-entities').AllHtmlEntities)();
+const i18n = require('i18next');
+const sprintf = require('i18next-sprintf-postprocessor');
+const languageStrings = {
+  'en': require('./languages/english'),
+  'es': require('./languages/spanish')
+};
 
-const SKILL_TITLE = "Botín de Clash of Clans";
-
-function createForecastMessage(locale, stats) {
-  const lootIndex = stats.lootIndexString;
-
-  if (locale === "es-ES" || locale === "es-MX" || locale === "es-US") {
-    const currentTrend = stats.currentLoot.trend === -1 ? "bajando" : "subiendo";
-    const forecastMessage = entities.decode(stats.forecastMessages["spanish"]);
-
-    return `
-    Bienvenido a Botín de Clash of Clans, el botín está en ${lootIndex} sobre 10 y ${currentTrend}. 
-    ${forecastMessage} 
-    Visita clashofclansforecaster.com para más información.
-    `;
-  } else if (locale === "en-US" || locale === "en-GB" ||
-    locale === "en-AU" || locale === "en-IN" || locale === "en-CA") {
-    const currentTrend = stats.currentLoot.trend === -1 ? "going down" : "going up";
-    const forecastMessage = entities.decode(stats.forecastMessages["english"]);
-
-    return `
-    Welcome to Clash of Clans Loot Forecaster, currently the loot is at ${lootIndex} out of 10 and ${currentTrend}. 
-    ${forecastMessage} 
-    Visit clashofclansforecaster.com for more information.
-    `;
-  } else {
-    return `The locale ${locale} is not supported yet`
+function getLocalizedTrend(trendIndex, requestAttributes) {
+  if (trendIndex === 1) {
+    return requestAttributes.t('UPWARDS_TREND');
+  } else if (trendIndex === -1) {
+    return requestAttributes.t('DOWNWARDS_TREND');
+  } else if (trendIndex === 0) {
+    return requestAttributes.t('STABLE_TREND')
   }
 }
 
@@ -39,14 +26,32 @@ const MainIntentHandler = {
   },
 
   async handle(handlerInput) {
-    const speechText = createForecastMessage(
-      handlerInput.requestEnvelope.request.locale,
-      await provider.accessStats()
+    const { attributesManager } = handlerInput;
+    const requestAttributes = attributesManager.getRequestAttributes();
+
+    const stats = await provider.accessStats();
+
+    const localizedTrend = getLocalizedTrend(
+      stats.currentLoot.trend,
+      requestAttributes
+    );
+
+    const forecastMessage = entities.decode(
+      stats.forecastMessages[requestAttributes.t('GENERIC_LANG')]
+    );
+
+    const speechText = requestAttributes.t(
+      'MAIN_STATS_MESSAGE',
+      stats.lootIndexString,
+      localizedTrend,
+      forecastMessage
     );
 
     return handlerInput.responseBuilder
       .speak(speechText)
-      .withSimpleCard(SKILL_TITLE, speechText)
+      .withSimpleCard(
+        requestAttributes.t('SKILL_NAME'), 
+        speechText)
       .withShouldEndSession(true)
       .getResponse();
   }
@@ -58,14 +63,17 @@ const HelpIntentHandler = {
       && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
   },
   handle(handlerInput) {
-    const speechText = `
-    Los datos de esta skill están proporcionados por clashofclansforecaster.com. 
-    Puedes ver como funciona esta herramienta visitando su sitio web`;
+    const { attributesManager } = handlerInput;
+    const requestAttributes = attributesManager.getRequestAttributes();
+
+    const speechText = requestAttributes.t('HELP_MESSAGE');
 
     return handlerInput.responseBuilder
       .speak(speechText)
       .reprompt(speechText)
-      .withSimpleCard(SKILL_TITLE, speechText)
+      .withSimpleCard(
+        requestAttributes.t('SKILL_NAME'),
+        speechText)
       .getResponse();
   }
 };
@@ -77,11 +85,16 @@ const CancelAndStopIntentHandler = {
         || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
   },
   handle(handlerInput) {
-    const speechText = '¡Hasta luego!';
+    const { attributesManager } = handlerInput;
+    const requestAttributes = attributesManager.getRequestAttributes();
+
+    const speechText = requestAttributes.t('EXIT_MESSAGE');
 
     return handlerInput.responseBuilder
       .speak(speechText)
-      .withSimpleCard(SKILL_TITLE, speechText)
+      .withSimpleCard(
+        requestAttributes.t('SKILL_NAME'),
+        speechText)
       .withShouldEndSession(true)
       .getResponse();
   }
@@ -105,13 +118,45 @@ const ErrorHandler = {
   handle(handlerInput, error) {
     console.log(`Error handled: ${error.message}`);
     console.log(`Error stack: ${error.stack}`);
-    
-    const speechText = "Ha ocurrido un error, por favor inténtalo otra vez"
+
+    const { attributesManager } = handlerInput;
+    const requestAttributes = attributesManager.getRequestAttributes();
+
+    const speechText = requestAttributes.t('ERROR_MESSAGE')
 
     return handlerInput.responseBuilder
       .speak(speechText)
       .reprompt(speechText)
       .getResponse();
+  },
+};
+
+const LocalizationInterceptor = {
+  process(handlerInput) {
+    const localizationClient = i18n.use(sprintf).init({
+      lng: Alexa.getLocale(handlerInput.requestEnvelope),
+      resources: languageStrings,
+    });
+    localizationClient.localize = function localize() {
+      const args = arguments;
+      const values = [];
+      for (let i = 1; i < args.length; i += 1) {
+        values.push(args[i]);
+      }
+      const value = i18n.t(args[0], {
+        returnObjects: true,
+        postProcess: 'sprintf',
+        sprintf: values,
+      });
+      if (Array.isArray(value)) {
+        return value[Math.floor(Math.random() * value.length)];
+      }
+      return value;
+    };
+    const attributes = handlerInput.attributesManager.getRequestAttributes();
+    attributes.t = function translate(...args) {
+      return localizationClient.localize(...args);
+    };
   },
 };
 
@@ -128,6 +173,7 @@ exports.handler = async function (event, context) {
         CancelAndStopIntentHandler,
         SessionEndedRequestHandler,
       )
+      .addRequestInterceptors(LocalizationInterceptor)
       .addErrorHandlers(ErrorHandler)
       .create();
   }
