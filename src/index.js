@@ -6,7 +6,7 @@ const SKILL_TITLE = "Botín de Clash of Clans";
 
 function createForecastMessage(locale, stats) {
   const lootIndex = stats.lootIndexString;
-  
+
   if (locale === "es-ES" || locale === "es-MX" || locale === "es-US") {
     const currentTrend = stats.currentLoot.trend === -1 ? "bajando" : "subiendo";
     const forecastMessage = entities.decode(stats.forecastMessages["spanish"]);
@@ -16,7 +16,8 @@ function createForecastMessage(locale, stats) {
     ${forecastMessage} 
     Visita clashofclansforecaster.com para más información.
     `;
-  } else if (locale === "en-US" || locale === "en-GB" || locale === "en-AU" || locale === "en-IN" || locale === "en-CA") {
+  } else if (locale === "en-US" || locale === "en-GB" ||
+    locale === "en-AU" || locale === "en-IN" || locale === "en-CA") {
     const currentTrend = stats.currentLoot.trend === -1 ? "going down" : "going up";
     const forecastMessage = entities.decode(stats.forecastMessages["english"]);
 
@@ -39,7 +40,7 @@ const MainIntentHandler = {
 
   async handle(handlerInput) {
     const speechText = createForecastMessage(
-      handlerInput.requestEnvelope.request.locale, 
+      handlerInput.requestEnvelope.request.locale,
       await provider.accessStats()
     );
 
@@ -57,7 +58,9 @@ const HelpIntentHandler = {
       && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
   },
   handle(handlerInput) {
-    const speechText = 'Los datos de esta skill están proporcionados por clashofclansforecaster.com. Puedes ver como funciona esta herramienta visitando su sitio web';
+    const speechText = `
+    Los datos de esta skill están proporcionados por clashofclansforecaster.com. 
+    Puedes ver como funciona esta herramienta visitando su sitio web`;
 
     return handlerInput.responseBuilder
       .speak(speechText)
