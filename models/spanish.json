@@ -1,0 +1,37 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "botín de clash of clans",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "LootStatsIntent",
+                    "slots": [],
+                    "samples": [
+                        "dime el tiempo botinero",
+                        "dame informacion",
+                        "dame estadisticas",
+                        "dime cuanto botin hay",
+                        "dime como estan las cosas"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}

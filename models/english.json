@@ -1,0 +1,50 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "clash of clans forecaster",
+            "intents": [
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "LootStatsIntent",
+                    "slots": [],
+                    "samples": [
+                        "give me info about loot",
+                        "give me loot",
+                        "give me loot statistics",
+                        "give me fax",
+                        "give me facts",
+                        "tell me the stats",
+                        "give me loot stats",
+                        "give me stats",
+                        "tell me how is loot",
+                        "tell me how is loot doing",
+                        "tell me whats up",
+                        "give me loot info",
+                        "give me info",
+                        "give me a forecast"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}
