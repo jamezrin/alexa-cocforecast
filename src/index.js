@@ -104,7 +104,8 @@ const ErrorHandler = {
   },
   handle(handlerInput, error) {
     console.log(`Error handled: ${error.message}`);
-
+    console.log(`Error stack: ${error.stack}`);
+    
     const speechText = "Ha ocurrido un error, por favor inténtalo otra vez"
 
     return handlerInput.responseBuilder
