@@ -133,6 +133,7 @@ const ErrorHandler = {
 
 const LocalizationInterceptor = {
   process(handlerInput) {
+    // @ts-ignore
     const localizationClient = i18n.use(sprintf).init({
       lng: Alexa.getLocale(handlerInput.requestEnvelope),
       resources: languageStrings,
@@ -143,6 +144,7 @@ const LocalizationInterceptor = {
       for (let i = 1; i < args.length; i += 1) {
         values.push(args[i]);
       }
+      // @ts-ignore
       const value = i18n.t(args[0], {
         returnObjects: true,
         postProcess: 'sprintf',
