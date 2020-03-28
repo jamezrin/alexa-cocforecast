@@ -4,4 +4,4 @@ package.zip
 *.iml
 
 src/samples
-src/node_modules
+node_modules
